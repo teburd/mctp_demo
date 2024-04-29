@@ -1,0 +1,8 @@
+[manifest]
+path = zephyr
+file = west.yml
+project-filter = +nanopb
+
+[zephyr]
+base = zephyr
+
