@@ -4,3 +4,5 @@
 	};
 };
 
+arduino_serial: &usart2 {};
+
