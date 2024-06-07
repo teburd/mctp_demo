@@ -16,7 +16,10 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(mctp_host);
 
-#define MCTP_EID 5
+#define LOCAL_HELLO_EID 5
+#define REMOTE_HELLO_EID 8
+#define LOCAL_SENSOR_EID 6
+#define REMOTE_SENSOR_EID 9
 
 static void rx_message(uint8_t eid, bool tag_owner,
                        uint8_t msg_tag, void *data, void *msg,
@@ -28,6 +31,11 @@ static void rx_message(uint8_t eid, bool tag_owner,
 
 
 const struct device *uart = DEVICE_DT_GET(DT_NODELABEL(arduino_serial));
+
+static uint8_t msg[sizeof(struct pldm_msg_hdr) +
+				    sizeof(PLDM_GET_SENSOR_READING_REQ_BYTES)];
+static struct pldm_msg *pldm_msg = (struct pldm_msg *)msg;
+const size_t payload_length = PLDM_GET_SENSOR_READING_REQ_BYTES;
 
 int main(void)
 {
@@ -46,11 +54,16 @@ int main(void)
 
 	mctp_serial_open(serial, uart);
 
-	mctp_register_bus(mctp, mctp_binding_serial_core(serial), MCTP_EID);
+	mctp_register_bus(mctp, mctp_binding_serial_core(serial), LOCAL_HELLO_EID);
+	mctp_register_bus(mctp, mctp_binding_serial_core(serial), LOCAL_SENSOR_EID);
 	mctp_set_rx_all(mctp, rx_message, NULL);
 
 	while (true) {
-		mctp_message_tx(mctp, 8, false, 0, "hello", sizeof("hello"));
+		mctp_message_tx(mctp, REMOTE_HELLO_EID, false, 0, "hello", sizeof("hello"));
+
+		encode_get_sensor_reading_req(0x09, 0, 0, pldm_msg);
+		mctp_message_tx(mctp, REMOTE_SENSOR_EID, false, 0, msg, sizeof(msg));
+
 		k_msleep(1);
 		for (int i = 0; i < 10000; i++) {
 			rc = mctp_serial_read(serial);
