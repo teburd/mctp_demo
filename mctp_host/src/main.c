@@ -16,10 +16,14 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(mctp_host);
 
-#define LOCAL_HELLO_EID 5
-#define REMOTE_HELLO_EID 8
-#define LOCAL_SENSOR_EID 6
-#define REMOTE_SENSOR_EID 9
+#define LOCAL_HELLO_EID 20
+#define LOCAL_SENSOR_EID 21
+#define LOCAL_PDR_EID 22
+
+#define REMOTE_HELLO_EID 10
+#define REMOTE_SENSOR_EID 11
+#define REMOTE_PDR_EID 12
+
 
 static void rx_message(uint8_t eid, bool tag_owner,
                        uint8_t msg_tag, void *data, void *msg,
